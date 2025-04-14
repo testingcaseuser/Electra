@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   authors: [
     {
       name: "younes101020",
-      url: "http://younesfakallah.fr",
+      url: "http://younesfakallah.com",
     },
   ],
   creator: "younes101020",
