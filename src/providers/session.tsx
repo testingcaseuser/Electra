@@ -23,7 +23,7 @@ export const SessionStoreProvider = ({
   children,
 }: SessionStoreProviderProps) => {
   const storeRef = useRef<SessionStoreApi>();
-  if (!storeRef.current) {
+  if (!storeRef.current && typeof window !== "undefined") {
     storeRef.current = createSessionStore(initSessionStore());
   }
 
