@@ -7,7 +7,7 @@
     "build": "next build && tsc --project tsconfig.server.json",
     "prod": "yarn migrate:deployonprod && yarn start",
     "commitlint": "commitlint --edit",
-    "start": "NODE_ENV=production node server.js",
+    "start": "next start",
     "lint": "next lint",
     "migrate:deployonprod": "npx prisma migrate deploy",
     "migrate:deployondev": "docker-compose -f devdb.yml up -d && dotenv -e .env.development -- npx prisma migrate deploy",
