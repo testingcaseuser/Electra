@@ -6,7 +6,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const node_http_1 = require("node:http");
 const next_1 = __importDefault(require("next"));
 const socket_io_1 = require("socket.io");
-const db_1 = require("./src/lib/db");
+const client_1 = require("@prisma/client");
 const dev = process.env.NODE_ENV !== "production";
 const hostname = "localhost";
 const port = 3000;
@@ -16,30 +16,47 @@ const handler = app.getRequestHandler();
 app.prepare().then(() => {
     const httpServer = (0, node_http_1.createServer)(handler);
     const io = new socket_io_1.Server(httpServer);
+    const db = new client_1.PrismaClient();
     let users = [];
     io.on("connection", (socket) => {
         socket.on("newUser", (data) => {
-            socket.join(data.space);
-            users.push(data);
-            console.log("ussseers", users)
-            socket.to(data.space).emit("newUserResponse", users);
+            console.log("from server side newuser event:", data);
+            // Ignore new user subscription when user is Anonymous (initial zustand value for session context)
+            if (data.name !== "Anonymous" &&
+                (!users.some((user) => user.name === data.name) || data.socketID)) {
+                socket.join(data.space);
+                // Update socket when duplicate is found elsewhere just push the new user
+                users = users.some((user) => user.name === data.name)
+                    ? users.map((user) => {
+                        if (user.name === data.name) {
+                            return data;
+                        }
+                        return user;
+                    })
+                    : [...users, data];
+                io.to(data.space).emit("newUserResponse", users.filter((user) => user.space === data.space));
+            }
         });
         socket.on("message", async (data) => {
-            console.log('qsdflnjkflnqsdjkflqsdjk, ok');
-            await db_1.db.message.create({
-                data,
+            console.log("from server side message event:", data);
+            // When new message is sended persist it into database and broadcast it into the space
+            socket.join(data.message.spaceId);
+            await db.message.create({
+                data: data.insertToDB,
             });
-            const allMessages = await db_1.db.message.findMany({
-                select: {
-                    id: true,
-                    content: true,
-                    spaceId: true,
-                },
-            });
-            socket.to(data.space).emit("messageResponse", allMessages);
+            io.to(data.message.spaceId).emit("messageResponse", data.message);
         });
         socket.on("disconnect", () => {
-            users = users.filter((user) => user.id.toString() !== socket.id);
+            // Remove user reference
+            users = users.map((user) => {
+                if (user.socketID === socket.id) {
+                    return {
+                        ...user,
+                        socketID: false,
+                    };
+                }
+                return user;
+            });
             io.emit("newUserResponse", users);
             socket.disconnect();
         });

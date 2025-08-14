@@ -14,6 +14,8 @@ export const metadata: Metadata = {
   description: "Consultez des centaines de films directement depuis cette page",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function Movies() {
   // Prefetch movie list + user favorite list from server side
   const queryClient = getQueryClient();

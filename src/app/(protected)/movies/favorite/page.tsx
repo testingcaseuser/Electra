@@ -14,6 +14,8 @@ export const metadata: Metadata = {
     "Retrouvez et gérez vos films favoris directement depuis cette page",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function FavoritePage() {
   const queryClient = getQueryClient();
   const tmdbAccoundId = await getTMDBAccountId();
