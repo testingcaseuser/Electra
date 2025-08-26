@@ -20,6 +20,8 @@ export const metadata: Metadata = {
   description: "Gérez vos espaces de discussion cinéma",
 };
 
+export const dynamic = "force-dynamic";
+
 export default async function SpacePage() {
   const tmdbAccoundId = await getTMDBAccountId();
   const userSpaces = await getUserSpaces({ userId: tmdbAccoundId });
